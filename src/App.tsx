@@ -126,6 +126,17 @@ export function App() {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
+  useEffect(() => {
+    document.body.style.overflow = selected ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, [selected]);
+
+  function closeDetail() {
+    setSelectedId(null);
+  }
+
   return (
     <div className="app">
       <header className="topbar">
@@ -167,7 +178,7 @@ export function App() {
         })}
       </div>
 
-      <div className={`layout${selected ? " with-detail" : ""}`}>
+      <div className="layout">
         <aside className="sidebar">
           {CATEGORIES.map((entry) => (
             <button
@@ -241,18 +252,27 @@ export function App() {
           </section>
         </main>
 
-        {selected && (
-          <aside className="detail">
+      </div>
+
+      {selected && (
+        <div className="modal-backdrop" onClick={closeDetail} role="presentation">
+          <div
+            className="modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="chart-dialog-title"
+            onClick={(event) => event.stopPropagation()}
+          >
             <div className="detail-head">
               <div>
                 <small className="meta">{selected.flag} {selected.country} · {selected.nameEn}</small>
-                <h2>{selected.name}</h2>
+                <h2 id="chart-dialog-title">{selected.name}</h2>
                 <div className="price">{formatPrice(quotes[selected.symbol]?.price ?? null, selected.kind)}</div>
                 <span className={`chg ${changeTone(quotes[selected.symbol]?.changePct ?? null)}`}>
                   {formatPercent(quotes[selected.symbol]?.changePct ?? null)}
                 </span>
               </div>
-              <button className="icon-btn" onClick={() => setSelectedId(null)} aria-label="关闭详情">×</button>
+              <button className="icon-btn" onClick={closeDetail} aria-label="关闭详情">×</button>
             </div>
 
             <div className="ranges">
@@ -264,7 +284,7 @@ export function App() {
             </div>
 
             <div className="chart-wrap">
-              <DetailChart points={detailPoints} item={selected} />
+              <DetailChart points={detailPoints} item={selected} range={range} />
             </div>
 
             <div className="metrics">
@@ -280,9 +300,9 @@ export function App() {
             <p className="disclaimer">
               数据来自公开市场行情，可能存在延迟，仅供浏览，不构成投资建议。本应用不处理任何个人账户、持仓或身份信息。
             </p>
-          </aside>
-        )}
-      </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
